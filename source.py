@@ -473,11 +473,45 @@ fig.show()
 # 
 # 
 
+# ## Checkpoint 3
+# 
+# 1. Machine Learning Plan
+# 
+# My Machine Learning Plan has a regression model where government spending acts as the independent variable and veteran unemployment rates as the dependent variable. U.S. unemployment rates are included as a comparative feature to account for economic shifts. A technical consideration is handling the COVID-19 period (2020–2022), during which economic disruptions were very impactful. Instead of treating COVID-related data as outliers, which was my initial plan,  they are retained to assess the true economic impact on veterans. Variables and percentage changes are used to capture the effects of spending. The goal is to quantify spending’s impact and  factors influencing veteran unemployment.
+# Categorization will play a big role the final product. Data will be divided into periods: pre-COVID, COVID, and post-COVID. These are used to analyze trends across each period. These categorizations will improve the analysis by ID’ng patterns that explain relationships across contexts.
+# ________________________________________
+# 2. Machine Learning Implementation Process
+# 
+# •	Ask
+#     How does government spending on veteran employment programs impact veteran unemployment rates? The prediction target is the annual veteran unemployment rate and determining which factors correlate most strongly to its changes.
+# •	Prepare
+#     This will include calculating percentage changes in veteran and national unemployment rates, and adding indicators for significant economic events, such as the COVID years.
+# •	Process
+#     1.	EDA: The distribution of veteran unemployment rates and government spending will be examined. Visualizations include a scatter plot (spending vs. veteran unemployment), a line chart (veteran vs. national unemployment trends), and a  treemap (spending vs. unemployment trends by year). Missing data, outliers, and correlations between features will also be identified.
+#     2.	Splitting the Dataset: The dataset will be divided into training (80%) and test (20%) subsets to evaluate the model’s performance.
+#     3.	Data Cleaning Using Scikit-Learn Pipelines: The data cleaning portion has already been done, but I will clean up the code and add a pipeline when I write the ML code. Handling of categorical data is unnecessary since the current datasets do not include categorical features.
+# •	Analyze
+#     •	Linear Regression: Establishes a relationship between government spending and veteran unemployment rates.
+#     This model will predict the annual veteran unemployment rate based on government spending and national unemployment rate. Model performance will be compared using metrics like MSE to evaluate prediction accuracy.
+# •	Evaluate
+#     I will include comparing predicted veteran unemployment rates with actual rates for examining the trends and spending changes on veteran outcomes.
+# •	Share
+#     Visualizations will play a key role in communicating findings:
+#     •	A scatter plot with a trendline will show the relationship between spending and veteran unemployment rates.
+#     •	A bar plot will illustrate changes in veteran unemployment rates and spending during the COVID years (2020–2022).
+#     •	A line plot will compare veteran unemployment rates to national unemployment rates from 2014–2023.
+#     •	A treemap will provide a yearly visualization of spending levels and unemployment rates, reflecting economic condition trends.
+#     Insights from these visualizations will be compiled into a report including key factors for decision-makers on the effectiveness of veteran spending programs in reducing unemployment and potential expanding these programs to improve veteran employment opportunities.
+# ________________________________________
+# 3. Prior Feedback and Updates
+# Based on checkpoint feedback I received the analysis of the COVID-19 years will be expanded to address the economic impact of the pandemic on veteran unemployment and government spending.
+# 
+
 # ## Resources and References
 # *What resources and references have you used for this project?*
 # 📝 <!-- Answer Below -->
 
-# In[155]:
+# In[ ]:
 
 
 # ⚠️ Make sure you run this cell at the end of your notebook before every submission!
