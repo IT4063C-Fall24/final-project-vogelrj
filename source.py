@@ -15,7 +15,7 @@
 # 1. What are the trends in veteran unemployment rates from 2014 up til now (excluding COVID years)?
 # 2. How has the Department of Veterans Affairs' spending changed over the same period, particularly in programs aimed at employment support?
 # 3. Is there a correlation between VA spending on employment programs and the unemployment rates among veterans?
-# 5. Are any changes in veterans employment rates explauined by nationwide changes?
+# 5. Are any changes in veterans employment rates explained by nationwide changes?
 
 # ## What would an answer look like?
 # *What is your hypothesized answer to your question?*
@@ -27,7 +27,7 @@
 # 
 # At the conclusion of this analysis I intend to show that there is a distinct relationship between government spending and veterans unemployment rates. I feel that the results will show that increses in spending result in decreases in eunemployment rates. 
 
-# In[133]:
+# In[49]:
 
 
 #imports
@@ -35,6 +35,9 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import plotly.express as px
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 # ## Data Sources
@@ -42,7 +45,7 @@ import plotly.express as px
 # *How are you going to relate these datasets?*
 # 📝 <!-- Answer Below -->
 
-# In[134]:
+# In[50]:
 
 
 # Import the BLS stats for veteran unemployment numbers
@@ -88,7 +91,7 @@ else:
     print(f"Failed to retrieve data: {res.status_code}")
 
 
-# In[135]:
+# In[51]:
 
 
 # Import the BLS stats for veteran unemployment rates
@@ -127,7 +130,7 @@ else:
     print(f"Failed to retrieve data: {res.status_code}")
 
 
-# In[136]:
+# In[52]:
 
 
 # load the unemployment rate from 2014-2024 from csv
@@ -137,10 +140,10 @@ unemployment_rate_df = pd.read_csv('data/us_unemployment_rate_2014_2024.csv')
 unemployment_rate_df.head()
 
 
-# In[137]:
+# In[ ]:
 
 
-# load total US unemployment rate of change from csv
+# load total US spending on veterans programs
 vet_program_spending_df = pd.read_csv('data/veterans_program_spending_by_year.csv')
 print(vet_program_spending_df.head())
 
@@ -161,7 +164,7 @@ print(vet_program_spending_df.head())
 #     Data types transformation.
 # 
 
-# In[138]:
+# In[54]:
 
 
 #Putting the dataframs in a list to make it easier to iterate and runs checks on all
@@ -176,7 +179,7 @@ for name, description in descriptions.items():
 
 
 
-# In[139]:
+# In[55]:
 
 
 #Running info() on each dataframe to look for nulls and examine datatypes
@@ -185,7 +188,7 @@ for df, name in zip(dfs, df_names):
     df.info()
 
 
-# In[140]:
+# In[56]:
 
 
 #The vet_employment_stats_df has all its values stored as string. I will need to convert the values to ints and trim the "M" designator from the renamed column month
@@ -200,7 +203,7 @@ vet_employment_stats_df.info()
 vet_employment_stats_df.describe()
 
 
-# In[141]:
+# In[57]:
 
 
 #The vet_unemployment_rates_df has all its values stored as string. I will need to convert the values to ints and trim the "M" designator from the renamed column month
@@ -215,7 +218,7 @@ vet_unemployment_rates_df.info()
 vet_unemployment_rates_df.describe()
 
 
-# In[142]:
+# In[58]:
 
 
 unemployment_rate_df['Month'] = unemployment_rate_df['DATE'].str.split('/').str[0].astype(int)
@@ -227,7 +230,7 @@ unemployment_rate_df.drop(columns=['DATE'], inplace=True)
 unemployment_rate_df
 
 
-# In[143]:
+# In[59]:
 
 
 # Checking for duplicates in each df
@@ -236,7 +239,7 @@ duplicate_counts = {name: df.duplicated().sum() for df, name in zip(dfs, df_name
 duplicate_counts
 
 
-# In[144]:
+# In[60]:
 
 
 # Checking for Outliers using the IQR method
@@ -262,7 +265,7 @@ for df, name in zip(dfs, df_names):
 outliers_iqr
 
 
-# In[145]:
+# In[61]:
 
 
 # Identifying the outliers in the unemployment rate df
@@ -284,7 +287,7 @@ print(unemp_outliers)
 
 # These outliers are from COVID years. As mentioned above they willl not be treated as outliers in the analysis
 
-# In[146]:
+# In[62]:
 
 
 # Identifying the outliers in the vet_employment_stats_df
@@ -306,7 +309,7 @@ print(vet_outliers)
 
 # These outliers are from COVID years. As mentioned above they willl not be treated as outliers in the analysis
 
-# In[147]:
+# In[63]:
 
 
 # Identifying the outliers in the vet_employment_stats_df
@@ -328,7 +331,7 @@ print(vet_unemp_outliers)
 
 # These outliers are from COVID years. As mentioned above they willl not be treated as outliers in the analysis
 
-# In[148]:
+# In[64]:
 
 
 # Identifying the outliers in the vet_program_spending_df
@@ -352,7 +355,7 @@ vet_program_spending_df = vet_program_spending_df[(vet_program_spending_df['tota
 
 
 
-# In[149]:
+# In[65]:
 
 
 descriptions = {name: df.describe(include='all') for df, name in zip(dfs, df_names)}
@@ -366,7 +369,7 @@ for name, description in descriptions.items():
 # ## Visualizations
 # 4 Visualizations from 2 different libraries
 
-# In[150]:
+# In[66]:
 
 
 merged_df = vet_employment_stats_df.merge(vet_program_spending_df, left_on='year', right_on='fiscal_year')
@@ -379,7 +382,7 @@ plt.ylabel("Veteran Unemployment Count")
 plt.show()
 
 
-# In[151]:
+# In[67]:
 
 
 plt.figure(figsize=(10, 6))
@@ -398,7 +401,7 @@ plt.legend()
 plt.show()
 
 
-# In[152]:
+# In[68]:
 
 
 #Isolating the data for covid years and averaging unemployment rates for vets and total population during that time compared to 2019
@@ -420,7 +423,7 @@ vet_unemployment_increase_pct = ((covid_vet_unemployment - pre_covid_vet_unemplo
 spending_increase_pct, vet_unemployment_increase_pct
 
 
-# In[153]:
+# In[ ]:
 
 
 data = {
@@ -432,12 +435,12 @@ increase_df = pd.DataFrame(data)
 
 plt.figure(figsize=(15, 10))
 sns.barplot(data=increase_df, x="Metric", y="Percentage Increase", palette="viridis")
-plt.title("Percentage Increase During COVID-19 (2020-2022) vs. Pre-COVID (2019)")
+plt.title("Percentage Increase During COVID-19 (2020-2022)")
 plt.ylabel("Percentage Increase (%)")
 plt.show()
 
 
-# In[154]:
+# In[70]:
 
 
 merged_df = unemployment_rate_df.merge(vet_program_spending_df, left_on='Year', right_on='fiscal_year')
@@ -505,6 +508,99 @@ fig.show()
 # ________________________________________
 # 3. Prior Feedback and Updates
 # Based on checkpoint feedback I received the analysis of the COVID-19 years will be expanded to address the economic impact of the pandemic on veteran unemployment and government spending.
+# 
+
+# In[ ]:
+
+
+#define features/ target and split into train/test
+
+x_value = merged_df['total_obligations']
+
+y_target = merged_df['UNRATE']
+
+x_train, x_test, y_train, y_test = train_test_split(x_value, y_target, test_size=0.2)
+
+#reshape the x_values training sets into 2D arrays
+
+x_train = x_train.values.reshape(-1, 1)
+x_test = x_test.values.reshape(-1, 1)
+
+
+
+
+# In[72]:
+
+
+# Fit the Linear Regression Model
+
+lin_reg = LinearRegression()
+lin_reg.fit(x_train, y_train)
+
+
+# In[73]:
+
+
+# Predict target values using lin_reg model and x_values test set
+target_pred = lin_reg.predict(x_test)
+
+
+# In[74]:
+
+
+# Evaluate the MSE and R2 scores for the model predictions
+mse = mean_squared_error(y_test, target_pred)
+r2 = r2_score(y_test, target_pred)
+
+print(f"Mean Squared Error: {mse}")
+print(f"R-squared: {r2}")
+
+
+# In[75]:
+
+
+# plot the acutal vs predict values
+
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x=y_test, y=target_pred, color="blue")
+plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color='red')
+plt.title('Actual vs. Predicted Veteran Unemployment Rates')
+plt.xlabel('Actual Unemployment Rates')
+plt.ylabel('Predicted Unemployment Rates')
+plt.show()
+
+
+# In[76]:
+
+
+# The model performed poorly and the scores were unsuitable for analysis. I will remove the COVID years from the df and mrun the model again to see if it improves without the noise of the COVID years
+filtered_df = merged_df[~merged_df['Year'].isin([2020, 2021, 2022])]
+
+x_value_filtered = filtered_df['total_obligations']
+
+y_target_filtered = filtered_df['UNRATE']
+
+x_train, x_test, y_train, y_test = train_test_split(x_value_filtered.values.reshape(-1, 1), y_target_filtered, test_size=0.2)
+
+lin_reg = LinearRegression()
+lin_reg.fit(x_train, y_train)
+
+target_pred = lin_reg.predict(x_test)
+
+mse_filtered = mean_squared_error(y_test, target_pred)
+r2_filtered = r2_score(y_test, target_pred)
+
+print(f"Filtered Data Mean Squared Error: {mse_filtered}")
+print(f"Filtered Data R-squared: {r2_filtered}")
+
+
+
+# ## ML Analaysis
+# 
+# During my ML analysis, I found that, within data used, government spending on veterans employment programs is not a signficant predictor for veterans unemployment. When the full datasets were used the model performed poorly, with a high MSE and a low R2 value, indicating minimal explanatory power. Hoping to improve this scores, I removed the COVID year as they were initially flagged as outliers during the EDA process. My hope in keeping this values in the ML process was to examine the relationship during abnormal circumstances, but those years added too much noise to the data and negatively impacted predictive modeling. AFter removing the COVID years (2020–2022), the model performance improved slightly. These revised scores, while better, were not sufficient enough to prove that government spending alone provides as significant impact to veteran unemployment rates.
+
+# ## Final Concluision
+# I came to two conclusions during this analysis. The first is that veteran unemployment usually follows national unemployment trends, even during times of extreme circumstances like COVID. While veterans rates are higher than national rates, the rate of change year on year between the two is similar and suggest that the simliar factors are affection both. The second conclusion confirms by initial hypothesis and the goal of this analysis, that government spending on veterans programs does impact veterans unemployment rates.  However, this impact is not as significate as I thought it would be and by itself it is not an accurate predictor for unemployment rates. Seeing these results leads me to believe that additional factors need to be considered. I believe that by not including additional factors, I oversimplified the linear regression model and lead to its poor performance. Things like demographic information, education, and new veterans to the workforce should also be included. Overall, while the analysis shows some connection between spending and unemployment, it also highlights the complexity of veteran unemployment trends and the need for more comprehensive modeling.
 # 
 
 # ## Resources and References
